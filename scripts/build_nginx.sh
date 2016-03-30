@@ -12,10 +12,12 @@
 NGINX_VERSION=${NGINX_VERSION-1.9.11}
 PCRE_VERSION=${PCRE_VERSION-8.38}
 ZLIB_VERSION=${ZLIB_VERSION-1.2.8}
+NGX_AWS_AUTH_VERSION=${NGX_AWS_AUTH-1.1.2}
 
 nginx_tarball_url=http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
 pcre_tarball_url=ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-${PCRE_VERSION}.tar.gz
 zlib_url=http://zlib.net/zlib-${ZLIB_VERSION}.tar.gz
+ngx_aws_auth_url=https://github.com/andrewjwu/ngx_aws_auth/archive/${NGX_AWS_AUTH_VERSION}.tar.gz
 
 temp_dir=$(mktemp -d /tmp/nginx.XXXXXXXXXX)
 
@@ -35,6 +37,9 @@ echo "Downloading $pcre_tarball_url"
 echo "Downloading $zlib_url"
 (cd nginx-${NGINX_VERSION} && curl -L $zlib_url | tar xvz )
 
+echo "Downloading $ngx_aws_auth_url"
+(cd nginx-${NGINX_VERSION} && curl -L $ngx_aws_auth_url | tar xvz )
+
 (
   cd nginx-${NGINX_VERSION}
   ./configure \
@@ -43,7 +48,8 @@ echo "Downloading $zlib_url"
     --prefix=/tmp/nginx \
     --with-http_gzip_static_module \
     --with-cc-opt='-g -O2 -fstack-protector --param=ssp-buffer-size=4 -Wformat -Werror=format-security -Wp,-D_FORTIFY_SOURCE=2' \
-    --with-ld-opt='-Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,--as-needed'
+    --with-ld-opt='-Wl,-Bsymbolic-functions -Wl,-z,relro -Wl,--as-needed' \
+    --add-module=ngx_aws_auth-${NGX_AWS_AUTH_VERSION}
 
   make install
 )
